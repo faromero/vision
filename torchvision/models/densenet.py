@@ -24,7 +24,7 @@ def densenet121(pretrained=False, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = DenseNet(num_init_features=64, growth_rate=32, block_config=(6, 12, 24, 16),
-                     **kwargs)
+                     name='DenseNet121', **kwargs)
     if pretrained:
         # '.'s are no longer allowed in module names, but pervious _DenseLayer
         # has keys 'norm.1', 'relu.1', 'conv.1', 'norm.2', 'relu.2', 'conv.2'.
@@ -51,7 +51,7 @@ def densenet169(pretrained=False, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = DenseNet(num_init_features=64, growth_rate=32, block_config=(6, 12, 32, 32),
-                     **kwargs)
+                     name='DenseNet169', **kwargs)
     if pretrained:
         # '.'s are no longer allowed in module names, but pervious _DenseLayer
         # has keys 'norm.1', 'relu.1', 'conv.1', 'norm.2', 'relu.2', 'conv.2'.
@@ -78,7 +78,7 @@ def densenet201(pretrained=False, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = DenseNet(num_init_features=64, growth_rate=32, block_config=(6, 12, 48, 32),
-                     **kwargs)
+                     name='DenseNet201', **kwargs)
     if pretrained:
         # '.'s are no longer allowed in module names, but pervious _DenseLayer
         # has keys 'norm.1', 'relu.1', 'conv.1', 'norm.2', 'relu.2', 'conv.2'.
@@ -105,7 +105,7 @@ def densenet161(pretrained=False, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = DenseNet(num_init_features=96, growth_rate=48, block_config=(6, 12, 36, 24),
-                     **kwargs)
+                     name='DenseNet161', **kwargs)
     if pretrained:
         # '.'s are no longer allowed in module names, but pervious _DenseLayer
         # has keys 'norm.1', 'relu.1', 'conv.1', 'norm.2', 'relu.2', 'conv.2'.
@@ -177,9 +177,9 @@ class DenseNet(nn.Module):
     """
 
     def __init__(self, growth_rate=32, block_config=(6, 12, 24, 16),
-                 num_init_features=64, bn_size=4, drop_rate=0, num_classes=1000):
+                 num_init_features=64, bn_size=4, drop_rate=0, num_classes=1000, name='NoName'):
 
-        super(DenseNet, self).__init__()
+        super(DenseNet, self).__init__(name=name)
 
         # First convolution
         self.features = nn.Sequential(OrderedDict([
