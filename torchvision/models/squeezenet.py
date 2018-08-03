@@ -39,8 +39,8 @@ class Fire(nn.Module):
 
 class SqueezeNet(nn.Module):
 
-    def __init__(self, version=1.0, num_classes=1000):
-        super(SqueezeNet, self).__init__()
+    def __init__(self, version=1.0, num_classes=1000, name='NoName'):
+        super(SqueezeNet, self).__init__(name=name)
         if version not in [1.0, 1.1]:
             raise ValueError("Unsupported SqueezeNet version {version}:"
                              "1.0 or 1.1 expected".format(version=version))
@@ -109,7 +109,7 @@ def squeezenet1_0(pretrained=False, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = SqueezeNet(version=1.0, **kwargs)
+    model = SqueezeNet(version=1.0, name='SqueezeNet1_0', **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['squeezenet1_0']))
     return model
@@ -124,7 +124,7 @@ def squeezenet1_1(pretrained=False, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = SqueezeNet(version=1.1, **kwargs)
+    model = SqueezeNet(version=1.1, name='SqueezeNet1_1', **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['squeezenet1_1']))
     return model
