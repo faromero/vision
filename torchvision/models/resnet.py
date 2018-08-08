@@ -2,6 +2,7 @@ import torch.nn as nn
 import math
 import torch.utils.model_zoo as model_zoo
 
+from pycache import PyCache
 
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
            'resnet152']
@@ -98,6 +99,7 @@ class ResNet(nn.Module):
     def __init__(self, block, layers, num_classes=1000, name='NoName'):
         self.inplanes = 64
         super(ResNet, self).__init__(name=name)
+        self.pcache = PyCache('ResNet')
         self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
                                bias=False)
         self.bn1 = nn.BatchNorm2d(64)
@@ -134,6 +136,7 @@ class ResNet(nn.Module):
 
         return nn.Sequential(*layers)
 
+    """
     def forward(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
@@ -150,6 +153,32 @@ class ResNet(nn.Module):
         x = self.fc(x)
 
         return x
+    """
+
+    def forward(self, x):
+        cache_res = self.pcache.search(x)
+        result = None
+        if cache_res is None:
+          x_orig = x
+          x = self.conv1(x)
+          x = self.bn1(x)
+          x = self.relu(x)
+          x = self.maxpool(x)
+
+          x = self.layer1(x)
+          x = self.layer2(x)
+          x = self.layer3(x)
+          x = self.layer4(x)
+
+          x = self.avgpool(x)
+          x = x.view(x.size(0), -1)
+          x = self.fc(x)
+          result = x
+          self.pcache.insert(x_orig, result)
+        else:
+          print("Found in cache")
+
+        return result
 
 
 def resnet18(pretrained=False, **kwargs):

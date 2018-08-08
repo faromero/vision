@@ -5,6 +5,8 @@ import torch.nn.functional as F
 import torch.utils.model_zoo as model_zoo
 from collections import OrderedDict
 
+from pycache import PyCache
+
 __all__ = ['DenseNet', 'densenet121', 'densenet169', 'densenet201', 'densenet161']
 
 
@@ -180,6 +182,7 @@ class DenseNet(nn.Module):
                  num_init_features=64, bn_size=4, drop_rate=0, num_classes=1000, name='NoName'):
 
         super(DenseNet, self).__init__(name=name)
+        self.pcache = PyCache('DenseNet')
 
         # First convolution
         self.features = nn.Sequential(OrderedDict([
@@ -217,9 +220,28 @@ class DenseNet(nn.Module):
             elif isinstance(m, nn.Linear):
                 nn.init.constant_(m.bias, 0)
 
+    """
     def forward(self, x):
         features = self.features(x)
         out = F.relu(features, inplace=True)
         out = F.avg_pool2d(out, kernel_size=7, stride=1).view(features.size(0), -1)
         out = self.classifier(out)
         return out
+    """
+
+    def forward(self, x):
+        cache_res = self.pcache.search(x)
+        result = None
+        if cache_res is None:
+          x_orig = x
+          features = self.features(x)
+          out = F.relu(features, inplace=True)
+          out = F.avg_pool2d(out, kernel_size=7, stride=1).view(features.size(0), -1)
+          out = self.classifier(out)
+          result = out
+          self.pcache.insert(x_orig, result)
+        else:
+          print("Found in cache")
+
+        return result 
+

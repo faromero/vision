@@ -2,6 +2,8 @@ import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
 import math
 
+from pycache import PyCache
+
 
 __all__ = [
     'VGG', 'vgg11', 'vgg11_bn', 'vgg13', 'vgg13_bn', 'vgg16', 'vgg16_bn',
@@ -25,6 +27,7 @@ class VGG(nn.Module):
 
     def __init__(self, features, num_classes=1000, init_weights=True, name='NoName'):
         super(VGG, self).__init__(name=name)
+        self.pcache = PyCache('VGG')
         self.features = features
         self.classifier = nn.Sequential(
             nn.Linear(512 * 7 * 7, 4096),
@@ -38,11 +41,28 @@ class VGG(nn.Module):
         if init_weights:
             self._initialize_weights()
 
+    """
     def forward(self, x):
         x = self.features(x)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         return x
+    """
+
+    def forward(self, x):
+        cache_res = self.pcache.search(x)
+        result = None
+        if cache_res is None:
+          x_orig = x
+          x = self.features(x)
+          x = x.view(x.size(0), -1)
+          x = self.classifier(x)
+          result = x
+          self.pcache.insert(x_orig, result)
+        else:
+          print("Found in cache")
+
+        return result
 
     def _initialize_weights(self):
         for m in self.modules():

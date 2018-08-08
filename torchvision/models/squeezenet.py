@@ -4,6 +4,8 @@ import torch.nn as nn
 import torch.nn.init as init
 import torch.utils.model_zoo as model_zoo
 
+from pycache import PyCache
+
 
 __all__ = ['SqueezeNet', 'squeezenet1_0', 'squeezenet1_1']
 
@@ -45,6 +47,7 @@ class SqueezeNet(nn.Module):
             raise ValueError("Unsupported SqueezeNet version {version}:"
                              "1.0 or 1.1 expected".format(version=version))
         self.num_classes = num_classes
+        self.pcache = PyCache('SqueezeNet')
         if version == 1.0:
             self.features = nn.Sequential(
                 nn.Conv2d(3, 96, kernel_size=7, stride=2),
@@ -95,10 +98,26 @@ class SqueezeNet(nn.Module):
                 if m.bias is not None:
                     init.constant_(m.bias, 0)
 
+    """
     def forward(self, x):
         x = self.features(x)
         x = self.classifier(x)
         return x.view(x.size(0), self.num_classes)
+    """
+
+    def forward(self, x):
+        cache_res = self.pcache.search(x)
+        result = None
+        if cache_res is None:
+          x_orig = x
+          x = self.features(x)
+          x = self.classifier(x)
+          result = x.view(x.size(0), self.num_classes)
+          self.pcache.insert(x_orig, result)
+        else:
+          print("Found in cache")
+
+        return result
 
 
 def squeezenet1_0(pretrained=False, **kwargs):
